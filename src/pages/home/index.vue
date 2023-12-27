@@ -12,11 +12,9 @@ const block = '🔒'
 const router = useRouter()
 const route = useRoute()
 
-let pageSize = ref(1)
+let currentPage = ref(1)
 let pageTotal = ref(0)
 let menuIndex = ref('6')
-const searchWords = ref('')
-
 let listRow = ref([])
 let loading = ref(true)
 
@@ -29,11 +27,11 @@ const renderDBNewsList = (category, page) => {
   loading.value = true
   listRow.value = []
 
-  getDBNewsList({ pageSize: page, category })
+  getDBNewsList({ page: page, category, pageSize: 50 })
     .then(res => {
       if (res.data) {
         const { totalPage, pageList } = res.data
-        pageSize.value = page
+        currentPage.value = page
         pageTotal.value = totalPage
         listRow.value = pageList
       }
@@ -54,11 +52,11 @@ const renderWBNewsList = (page) => {
   loading.value = true
   listRow.value = []
 
-  getWBNewsList({ pageSize: page })
+  getWBNewsList({ page: page })
     .then(res => {
       if (res.data) {
         const { totalPage, pageList } = res.data
-        pageSize.value = page
+        currentPage.value = page
         pageTotal.value = totalPage
         listRow.value = pageList
       }
@@ -79,16 +77,16 @@ const renderWBNewsList = (page) => {
 const onSelectMenu = (key) => {
   menuIndex.value = String(key)
   pageTotal.value = 0
-  pageSize.value = 1
+  currentPage.value = 1
 
   if (String(key) === MENU_TYPE.WEIBO) {
-    renderWBNewsList(pageSize.value)
+    renderWBNewsList(currentPage.value)
   }
   else if (String(key) === MENU_TYPE.HOME) {
-    renderIndexNewsList(pageSize.value)
+    renderIndexNewsList(currentPage.value)
   }
   else {
-    renderDBNewsList(key, pageSize.value)
+    renderDBNewsList(key, currentPage.value)
   }
 }
 
@@ -97,7 +95,7 @@ const onSelectMenu = (key) => {
  * @param { number } page 
  */
 const onPageChange = (page) => {
-  if (page === pageSize.value) return
+  if (page === currentPage.value) return
 
   if (route.query.q) {
     renderSearchNewsList(route.query.q, page)
@@ -124,7 +122,7 @@ const onPageChange = (page) => {
     .then(res => {
       if (res.data) {
         const { totalPage, pageList } = res.data
-        pageSize.value = page
+        currentPage.value = page
         pageTotal.value = totalPage
         listRow.value = pageList
       }
@@ -171,7 +169,7 @@ const renderIndexNewsList = (page) => {
     .then(res => {
       if (res.data) {
         const { totalPage, pageList } = res.data
-        pageSize.value = page
+        currentPage.value = page
         pageTotal.value = totalPage
         listRow.value = pageList
       }
@@ -190,7 +188,7 @@ onMounted(() => {
 
   if (query.q) {
     menuIndex.value = '0'
-    renderSearchNewsList(query.q, pageSize.value)
+    renderSearchNewsList(query.q, currentPage.value)
   }
   else if (query.menuIndex) {
     menuIndex.value = String(query.menuIndex)
@@ -198,7 +196,7 @@ onMounted(() => {
     onSelectMenu(menuIndex.value)
   }
   else {
-    renderIndexNewsList(pageSize.value)
+    renderIndexNewsList(currentPage.value)
   }
 })
 </script>
