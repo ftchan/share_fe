@@ -35,9 +35,6 @@ const onSelectMenu = (key, keyPath) => {
     if (category === MENU_TYPE.WEIBO) {
       emits('render-wb-news', category, keyPath)
     }
-    else if (category === MENU_TYPE.HOME) {
-      emits('render-index-news', category, keyPath)
-    }
     else {
       emits('render-db-news', category, keyPath)
     }
@@ -58,11 +55,10 @@ const onSelectMenu = (key, keyPath) => {
         <span>线报测试站</span>
       </el-menu-item>
       <div class="shareContainer__menu"></div>
-      <el-menu-item index="6" :disabled="loading">首页</el-menu-item>
       <el-menu-item index="1" :disabled="loading">微博线报</el-menu-item>
-      <el-menu-item index="2" :disabled="loading">豆瓣买组</el-menu-item>
+      <el-menu-item index="2" :disabled="loading">豆瓣发组</el-menu-item>
       <el-menu-item index="3" :disabled="loading">豆瓣拼组</el-menu-item>
-      <el-menu-item index="4" :disabled="loading">豆瓣发组</el-menu-item>
+      <el-menu-item index="4" :disabled="loading">豆瓣买组</el-menu-item>
       <el-menu-item index="5" :disabled="loading">豆瓣狗组</el-menu-item>
       <el-icon class="shareContainer__searchIcon" size="20" @click="onSearch">
         <Search />

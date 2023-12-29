@@ -4,9 +4,10 @@ import Header from '@/components/header.vue'
 import { getNewsContent } from '@/api/common'
 import { useRoute, useRouter } from 'vue-router'
 
-const link = ref('')
+let id
 const route = useRoute()
 const loading = ref(false)
+const URL_LINK = /(https?|http|ftp|file):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]/g
 
 const item = ref({
   title: '',
@@ -17,15 +18,35 @@ const item = ref({
 })
 
 
-const renderNewsContent = () => {
+const handleLink = (template) => {
+  const urlList = template.match(URL_LINK)
+
+  if (!urlList || !urlList.length) {
+    return template
+  }
+
+  for (let i = 0; i < urlList.length; i++) {
+    const url = urlList[i]
+    if (!url.includes('png') && !url.includes('jpg') && !url.includes('jpeg')) {
+      template = template.replace(url, `<a href='${url}' target='__blank' class='outsideLink'>${url}</a>`)
+    }
+  }
+
+  return template
+}
+
+
+const onViewDetail = (id) => {
   loading.value = true
-  getNewsContent({ link: link.value })
+
+  getNewsContent({ id })
     .then(res => {
-      item.value.time = res.data.time
-      item.value.title = res.data.title
-      item.value.originUrl = res.data.originUrl
-      item.value.content = res.data.content
-      item.value.comments = res.data.comments
+      if (res.data) {
+        item.value.content = handleLink(res.data.content.article_content)
+        item.value.time = res.data.detail.article_publish_time
+        item.value.originUrl = res.data.detail.article_catch_source_url
+        item.value.comments = res.data.comment.article_comments
+      }
     })
     .catch(err => {
 
@@ -36,9 +57,13 @@ const renderNewsContent = () => {
 }
 
 onMounted(() => {
-  if (route?.query?.link) {
-    link.value = route.query.link
-    renderNewsContent(link.value)
+  if (route?.query?.id) {
+    id = route.query.id
+    onViewDetail(id)
+  }
+
+  if (route?.query?.title) {
+    item.value.title = route.query.title
   }
 })
 </script>
@@ -67,12 +92,22 @@ onMounted(() => {
           </template>
 
           <div v-if="item.comments.length">
-            <div v-for="comment in item.comments" :key="comment.uid" class="pageDetailContainer__comments__list">
+            <div v-for="comment in item.comments" :key="comment.content" class="pageDetailContainer__comments__list">
               <div class="pageDetailContainer__comments__info">
                 <span class="pageDetailContainer__comments__author">{{ comment.author }}</span>
                 <span class="pageDetailContainer__comments__time">{{ comment.time }}</span>
               </div>
               <div class="pageDetailContainer__comments__content">{{ comment.content }}</div>
+
+              <div v-if="comment.sub_comments.length" class="pageDetailContainer__subcomments">
+                <div class="pageDetailContainer__subcomments__info" v-for="subcomment in comment.sub_comments">
+                  <div class="pageDetailContainer__subcomments__header">
+                    <span class="pageDetailContainer__comments__author">{{ subcomment.author }}</span>
+                    <span class="pageDetailContainer__comments__time">{{ subcomment.time }}</span>
+                  </div>
+                  <div class="pageDetailContainer__comments__content">{{ subcomment.content }}</div>
+                </div>
+              </div>
               <el-divider />
             </div>
           </div>
@@ -93,6 +128,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+
 .beian-footer {
   position: absolute;
   left: 50%;
@@ -139,6 +175,21 @@ onMounted(() => {
 
     &__link {
       word-break: break-all;
+    }
+  }
+
+  &__subcomments {
+    width: 60%;
+    background: #eee;
+    margin: 16px 0px 0 0;
+    padding: 16px;
+
+    &__info {
+      margin-bottom: 8px;
+    }
+
+    &__header {
+      margin-bottom: 8px;
     }
   }
 
@@ -219,5 +270,13 @@ onMounted(() => {
       }
     }
   }
+}
+</style>
+
+<style lang="scss">
+.outsideLink {
+  text-decoration: none;
+  text-decoration-line: none;
+  color: #409eff;
 }
 </style>
