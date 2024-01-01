@@ -37,6 +37,13 @@ const handleLink = (template) => {
     }
   })
 
+
+
+  $('.wrap-content img').each((_, ele) => {
+    const src = $(ele).attr('src')
+    template = template.replace(src, `/api/v2/image?url=${src}`)
+  })
+
   return template
 }
 
