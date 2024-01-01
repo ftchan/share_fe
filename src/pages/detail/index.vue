@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import Header from '@/components/header.vue'
 import { getNewsContent } from '@/api/common'
 import { useRoute, useRouter } from 'vue-router'
+import * as cheerio from 'cheerio'
 
 let id
 const route = useRoute()
@@ -19,18 +20,22 @@ const item = ref({
 
 
 const handleLink = (template) => {
+  let wrapContent = `<div class='wrap-content'>${template}</div>`
   const urlList = template.match(URL_LINK)
 
   if (!urlList || !urlList.length) {
     return template
   }
 
-  for (let i = 0; i < urlList.length; i++) {
-    const url = urlList[i]
-    if (!url.includes('png') && !url.includes('jpg') && !url.includes('jpeg')) {
-      template = template.replace(url, `<a href='${url}' target='__blank' class='outsideLink'>${url}</a>`)
+  const $ = cheerio.load(wrapContent)
+  
+  $('.wrap-content').contents().each((_, ele) => {
+    const e = $(ele)
+    const c = e.text()
+    if (ele.type === 'text' && URL_LINK.test(c)) {
+      template = template.replace(e.text(), `<a href='${e.text()}' target='__blank' class='outsideLink'>${e.text()}</a>`)
     }
-  }
+  })
 
   return template
 }
@@ -128,7 +133,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-
 .beian-footer {
   position: absolute;
   left: 50%;
